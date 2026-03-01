@@ -19,7 +19,7 @@ matchRouter.get("/", async (req, res) => {
   if (!parsed.success) {
     return res.status(400).json({
       error: "Invalid query parameters",
-      details: JSON.stringify(parsed.error),
+      details: parsed.error.issues,
     });
   }
 
@@ -35,15 +35,12 @@ matchRouter.get("/", async (req, res) => {
   } catch (e) {
     res
       .status(500)
-      .json({ error: "Failed to fetch matches", details: JSON.stringify(e) });
+      .json({ error: "Failed to fetch matches", details: parsed.error.issues });
   }
 });
 
 matchRouter.post("/", async (req, res) => {
   const parsed = createMatchSchema.safeParse(req.body);
-  const {
-    data: { startTime, endTime, homeScore, awayScore },
-  } = parsed;
 
   if (!parsed.success) {
     return res.status(400).json({
@@ -52,6 +49,9 @@ matchRouter.post("/", async (req, res) => {
     });
   }
 
+  const {
+    data: { startTime, endTime, homeScore, awayScore },
+  } = parsed;
   try {
     const [event] = await db
       .insert(matches)
